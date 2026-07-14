@@ -2,7 +2,7 @@
 
 A Spring Boot backend for secure user authentication, transaction monitoring, role-based access control, audit logging, and rule-based suspicious-activity detection.
 
-> **Original project year:** 2026  
+> **Original project year:** 2024  
 > **Public repository reconstruction:** July 2026  
 > **Status:** Active portfolio reconstruction using verified, original work only
 
