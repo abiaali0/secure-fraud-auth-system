@@ -1,6 +1,6 @@
 # Secure Fraud Detection & Authentication System
 
-A Spring Boot backend for secure user authentication, transaction monitoring, role-based access control, audit logging, and rule-based suspicious-activity detection.
+A Spring Boot backend for secure user authentication, transaction monitoring, role-based access control, persistent audit logging, and rule-based suspicious-activity detection.
 
 > **Original project year:** 2024  
 > **Public repository reconstruction:** July 2026  
@@ -13,13 +13,13 @@ This repository currently includes:
 - Spring Boot REST API
 - User registration and login
 - BCrypt password hashing
-- JWT authentication
+- JWT Bearer authentication
 - Role-based authorization
 - PostgreSQL persistence
 - Transaction recording
 - Rule-based fraud scoring
 - Suspicious-activity flags
-- Audit logging
+- Persistent authentication and transaction audit events
 - Unit tests
 - Docker Compose
 - GitHub Actions continuous integration
@@ -41,7 +41,7 @@ Fraud scoring service
   ↓
 PostgreSQL persistence
   ↓
-Audit log
+Audit events
 ```
 
 ## Fraud Rules in This Public Version
@@ -51,7 +51,6 @@ A transaction can be flagged when one or more conditions are met:
 - Amount exceeds a high-value threshold
 - Transaction occurs from a new country
 - Too many transactions occur within a short period
-- Amount is far above the user's recent average
 - Multiple risk signals occur together
 
 ## API Endpoints
@@ -88,19 +87,9 @@ Authorization: Bearer <token>
 docker compose up --build
 ```
 
-The API will be available at:
-
-```text
-http://localhost:8080
-```
+The API will be available at `http://localhost:8080` and the health endpoint at `http://localhost:8080/health`.
 
 ## Run Tests
-
-```bash
-./mvnw test
-```
-
-or:
 
 ```bash
 mvn test
@@ -113,6 +102,7 @@ secure-fraud-auth-system/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/abia/fraudauth/
+│   │   │   ├── audit/
 │   │   │   ├── auth/
 │   │   │   ├── config/
 │   │   │   ├── fraud/
@@ -130,10 +120,8 @@ secure-fraud-auth-system/
 
 ## Development Timeline
 
-- **2026:** Original project work
+- **2024:** Original project work
 - **July 2026:** Public portfolio reconstruction and documentation
-
-The résumé does not state exact original months, so this repository does not claim a more specific timeline.
 
 ## Accuracy Note
 

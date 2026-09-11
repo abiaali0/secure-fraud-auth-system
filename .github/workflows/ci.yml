@@ -17,23 +17,30 @@ jobs:
         run: mvn -B package -DskipTests
       - name: Start full stack
         run: docker compose up -d --build
-      - name: Smoke test authentication and transactions
+      - name: Smoke test authentication, transactions, fraud scoring, and audit persistence
         run: |
           for i in {1..40}; do
             if curl --fail --silent http://localhost:8080/health | grep -q 'ok'; then break; fi
             sleep 2
           done
-          curl --fail http://localhost:8080/health
+          curl --fail --silent http://localhost:8080/health | grep -q 'ok'
+
           REGISTER=$(curl --fail --silent -X POST http://localhost:8080/api/auth/register \
             -H 'Content-Type: application/json' \
             -d '{"email":"ci@example.com","password":"StrongPassword123"}')
           TOKEN=$(python -c 'import json,sys; print(json.load(sys.stdin)["token"])' <<< "$REGISTER")
-          curl --fail --silent -X POST http://localhost:8080/api/transactions \
+
+          TRANSACTION=$(curl --fail --silent -X POST http://localhost:8080/api/transactions \
             -H "Authorization: Bearer $TOKEN" \
             -H 'Content-Type: application/json' \
-            -d '{"amount":7500.00,"country":"US"}' | grep -q 'riskScore'
+            -d '{"amount":7500.00,"country":"US"}')
+          python -c 'import json,sys; data=json.load(sys.stdin); assert "riskScore" in data; assert data["amount"] == 7500.0' <<< "$TRANSACTION"
+
           curl --fail --silent http://localhost:8080/api/transactions \
             -H "Authorization: Bearer $TOKEN" | grep -q '7500.00'
+
+          AUDIT_COUNT=$(docker compose exec -T db psql -U postgres -d fraudauth -tAc "SELECT count(*) FROM audit_events;")
+          test "$AUDIT_COUNT" -ge 2
       - name: Tear down
         if: always()
         run: docker compose down -v

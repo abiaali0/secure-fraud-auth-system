@@ -1,5 +1,6 @@
 package com.abia.fraudauth.transaction;
 
+import com.abia.fraudauth.audit.AuditService;
 import com.abia.fraudauth.fraud.FraudDecision;
 import com.abia.fraudauth.fraud.FraudDetectionService;
 import com.abia.fraudauth.user.User;
@@ -15,15 +16,18 @@ public class TransactionService {
     private final TransactionRepository transactions;
     private final UserRepository users;
     private final FraudDetectionService fraud;
+    private final AuditService audit;
 
     public TransactionService(
         TransactionRepository transactions,
         UserRepository users,
-        FraudDetectionService fraud
+        FraudDetectionService fraud,
+        AuditService audit
     ) {
         this.transactions = transactions;
         this.users = users;
         this.fraud = fraud;
+        this.audit = audit;
     }
 
     public TransactionDtos.TransactionResponse create(
@@ -55,7 +59,15 @@ public class TransactionService {
         transaction.setRiskScore(decision.score());
         transaction.setRiskReason(decision.reason());
 
-        return TransactionDtos.TransactionResponse.from(transactions.save(transaction));
+        Transaction saved = transactions.save(transaction);
+        audit.record(
+            email,
+            "TRANSACTION_CREATED",
+            "transaction_id=" + saved.getId()
+                + ", risk_score=" + saved.getRiskScore()
+                + ", flagged=" + saved.isFlagged()
+        );
+        return TransactionDtos.TransactionResponse.from(saved);
     }
 
     public List<TransactionDtos.TransactionResponse> list(String email) {
